@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Stop-hipnosis",
+  "version": "1.0",
+  "description": "Recupera el control de tu tiempo y evita la sobreestimulacion.",
+  "permissions": [
+    "storage",
+    "alarms",
+    "tabs",
+    "declarativeNetRequest"
+  ],
+  "host_permissions": [
+    "*://*.youtube.com/*",
+    "*://*.instagram.com/*",
+    "*://*.tiktok.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Stop-hipnosis"
+  },
+  "declarative_net_request": {
+    "rule_resources": [{
+      "id": "ruleset_1",
+      "enabled": false,
+      "path": "rules.json"
+    }]
+  },
+  "web_accessible_resources": [{
+    "resources": ["blocked.html", "blocked.js", "styles.css"],
+    "matches": ["<all_urls>"]
+  }]
+}

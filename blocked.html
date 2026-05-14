@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stop-hipnosis</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="blocked-body">
+  <div class="blocked-card">
+    <div class="logo-small">Stop-hipnosis</div>
+    <div id="mainMessage" class="main-message"></div>
+    <div id="goalReminder" class="goal-reminder"></div>
+    <div id="waitSection" class="wait-section hidden">
+      <div class="wait-text">Espera <span id="countdown"></span> segundos...</div>
+      <div class="wait-bar-container"><div id="waitBar" class="wait-bar"></div></div>
+    </div>
+    <div id="actionSection" class="action-section">
+      <button id="btnWantIt" class="btn-primary">Dame unos minutos</button>
+      <p class="small-text">o cierra esta pestana y vuelve a lo que importa</p>
+    </div>
+    <div id="minutePicker" class="minute-picker hidden">
+      <p class="picker-label">Cuantos minutos necesitas?</p>
+      <div class="minute-buttons">
+        <button class="btn-minutes" data-min="1">1 min</button>
+        <button class="btn-minutes" data-min="3">3 min</button>
+        <button class="btn-minutes" data-min="5">5 min</button>
+        <button class="btn-minutes" data-min="10">10 min</button>
+        <button class="btn-minutes" data-min="15">15 min</button>
+      </div>
+    </div>
+  </div>
+  <script src="blocked.js"></script>
+</body>
+</html>

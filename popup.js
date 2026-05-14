@@ -1,6 +1,20 @@
 const onboardingDiv = document.getElementById('onboarding');
 const dashboardDiv = document.getElementById('dashboard');
 
+// Boton opciones en dashboard
+function addOptionsLink() {
+  if (document.getElementById('btnOptions')) return;
+  const btn = document.createElement('button');
+  btn.id = 'btnOptions';
+  btn.textContent = 'Configuracion avanzada';
+  btn.className = 'toggle-btn';
+  btn.style.cssText = 'margin-top:8px; background:#2a2d3a; color:#94a3b8; font-size:13px';
+  btn.addEventListener('click', () => {
+    chrome.runtime.openOptionsPage();
+  });
+  dashboardDiv.appendChild(btn);
+}
+
 function showDashboard(data) {
   onboardingDiv.classList.add('hidden');
   dashboardDiv.classList.remove('hidden');
@@ -24,30 +38,35 @@ function showDashboard(data) {
     btn.className = 'toggle-btn toggle-off';
   }
 
-  // Estado por sitio
   const tempAccess = data.tempAccess || {};
   const now = Date.now();
   const sites = ['youtube', 'instagram', 'tiktok'];
   sites.forEach(site => {
     const el = document.getElementById('st-' + site);
+    if (!el) return;
     if (!blockingEnabled) {
       el.textContent = 'Libre';
       el.className = 'site-status status-allowed';
     } else if (tempAccess[site] && tempAccess[site] > now) {
       const mins = Math.ceil((tempAccess[site] - now) / 60000);
-      el.textContent = 'Libre ' + mins + ' min';
+      el.textContent = 'Libre ' + mins + 'min';
       el.className = 'site-status status-allowed';
     } else {
       el.textContent = 'Bloqueado';
       el.className = 'site-status site-blocked';
     }
   });
+
+  addOptionsLink();
 }
 
-// Inicializar
+// INIT: comprobar si ya hizo onboarding
 chrome.storage.local.get(['onboardingDone', 'userName', 'blockingEnabled', 'tempAccess'], (data) => {
-  if (data.onboardingDone) {
+  if (data.onboardingDone === true) {
     showDashboard(data);
+  } else {
+    onboardingDiv.classList.remove('hidden');
+    dashboardDiv.classList.add('hidden');
   }
 });
 
@@ -67,7 +86,10 @@ document.getElementById('btnSaveOnboarding').addEventListener('click', () => {
     userAge: age,
     userJob: job,
     userGoals: [goal],
-    blockingEnabled: true
+    blockingEnabled: true,
+    blockYoutube: true,
+    blockInstagram: true,
+    blockTiktok: true
   }, () => {
     chrome.runtime.sendMessage({ type: 'updateRules' });
     chrome.storage.local.get(['onboardingDone', 'userName', 'blockingEnabled', 'tempAccess'], showDashboard);
@@ -89,6 +111,7 @@ document.getElementById('btnToggle').addEventListener('click', () => {
 document.getElementById('btnReset').addEventListener('click', () => {
   chrome.storage.local.set({ accessCount: {}, tempAccess: {} }, () => {
     chrome.runtime.sendMessage({ type: 'updateRules' });
+    chrome.storage.local.get(['onboardingDone', 'userName', 'blockingEnabled', 'tempAccess'], showDashboard);
     alert('Contadores reiniciados.');
   });
 });

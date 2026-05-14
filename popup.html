@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Stop-hipnosis</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="popup-body">
+
+  <!-- ONBOARDING -->
+  <div id="onboarding">
+    <div class="popup-logo">Stop-hipnosis</div>
+    <div class="popup-title">Hola, bienvenido</div>
+    <div class="popup-subtitle">Cuéntanos un poco sobre ti para personalizar tu experiencia.</div>
+    <div class="form-group">
+      <label class="form-label">Tu nombre</label>
+      <input id="inputName" class="form-input" type="text" placeholder="Como te llamas?">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Edad</label>
+      <input id="inputAge" class="form-input" type="number" placeholder="Tu edad">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Ocupacion</label>
+      <input id="inputJob" class="form-input" type="text" placeholder="Estudiante, trabajador...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tu principal meta</label>
+      <input id="inputGoal" class="form-input" type="text" placeholder="Ej: Dormir mejor">
+    </div>
+    <button id="btnSaveOnboarding" class="btn-primary" style="margin-top:8px">Empezar a recuperar mi tiempo</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard" class="hidden">
+    <div class="popup-logo">Stop-hipnosis</div>
+    <div id="statusBadge" class="status-badge"></div>
+    <div class="popup-subtitle" id="greetUser"></div>
+
+    <div class="site-row">
+      <span class="site-name">YouTube</span>
+      <span id="st-youtube" class="site-status site-blocked">Bloqueado</span>
+    </div>
+    <div class="site-row">
+      <span class="site-name">Instagram</span>
+      <span id="st-instagram" class="site-status site-blocked">Bloqueado</span>
+    </div>
+    <div class="site-row">
+      <span class="site-name">TikTok</span>
+      <span id="st-tiktok" class="site-status site-blocked">Bloqueado</span>
+    </div>
+
+    <button id="btnToggle" class="toggle-btn toggle-on" style="margin-top:16px">Desactivar bloqueo</button>
+    <button id="btnReset" class="toggle-btn" style="margin-top:8px; background:#2a2d3a; color:#94a3b8">Reiniciar contadores</button>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

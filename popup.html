@@ -11,7 +11,7 @@
   <div id="onboarding">
     <div class="popup-logo">Stop-hipnosis</div>
     <div class="popup-title">Hola, bienvenido</div>
-    <div class="popup-subtitle">Cuéntanos un poco sobre ti para personalizar tu experiencia.</div>
+    <div class="popup-subtitle">Cuentanos un poco sobre ti para personalizar tu experiencia.</div>
     <div class="form-group">
       <label class="form-label">Tu nombre</label>
       <input id="inputName" class="form-input" type="text" placeholder="Como te llamas?">
@@ -27,6 +27,11 @@
     <div class="form-group">
       <label class="form-label">Tu principal meta</label>
       <input id="inputGoal" class="form-input" type="text" placeholder="Ej: Dormir mejor">
+    </div>
+    <div class="form-group">
+      <label class="form-label">PIN de seguridad (4 digitos)</label>
+      <input id="inputPin" class="form-input" type="password" maxlength="4" placeholder="1234" inputmode="numeric">
+      <p style="font-size:11px;color:#475569;margin-top:4px">Lo necesitaras para desactivar el bloqueo. Guardalo bien.</p>
     </div>
     <button id="btnSaveOnboarding" class="btn-primary" style="margin-top:8px">Empezar a recuperar mi tiempo</button>
   </div>
@@ -50,8 +55,20 @@
       <span id="st-tiktok" class="site-status site-blocked">Bloqueado</span>
     </div>
 
-    <button id="btnToggle" class="toggle-btn toggle-on" style="margin-top:16px">Desactivar bloqueo</button>
+    <button id="btnUnlock" class="toggle-btn toggle-off" style="margin-top:16px">Desactivar bloqueo (requiere PIN)</button>
     <button id="btnReset" class="toggle-btn" style="margin-top:8px; background:#2a2d3a; color:#94a3b8">Reiniciar contadores</button>
+    <button id="btnOptions" class="toggle-btn" style="margin-top:8px; background:#2a2d3a; color:#94a3b8; font-size:13px">Configuracion avanzada</button>
+
+    <!-- Panel PIN -->
+    <div id="pinPanel" class="hidden" style="margin-top:16px; background:#1a1d26; border:1px solid #2a2d3a; border-radius:10px; padding:16px">
+      <p style="font-size:13px; color:#94a3b8; margin-bottom:10px">Introduce tu PIN para desactivar el bloqueo:</p>
+      <input id="pinInput" class="form-input" type="password" maxlength="4" placeholder="PIN" inputmode="numeric" style="margin-bottom:10px">
+      <div style="display:flex; gap:8px">
+        <button id="btnConfirmPin" class="btn-primary" style="flex:1">Confirmar</button>
+        <button id="btnCancelPin" style="flex:1; background:#2a2d3a; color:#94a3b8; border:none; border-radius:8px; padding:10px; cursor:pointer">Cancelar</button>
+      </div>
+      <p id="pinError" style="font-size:12px; color:#ef4444; margin-top:8px; display:none">PIN incorrecto. Intentalo de nuevo.</p>
+    </div>
   </div>
 
   <script src="popup.js"></script>

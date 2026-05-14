@@ -21,6 +21,7 @@
     "default_popup": "popup.html",
     "default_title": "Stop-hipnosis"
   },
+  "options_page": "options.html",
   "declarative_net_request": {
     "rule_resources": [{
       "id": "ruleset_1",
@@ -29,7 +30,7 @@
     }]
   },
   "web_accessible_resources": [{
-    "resources": ["blocked.html", "blocked.js", "styles.css"],
+    "resources": ["blocked.html", "blocked.js", "styles.css", "options.html", "options.js"],
     "matches": ["<all_urls>"]
   }]
 }

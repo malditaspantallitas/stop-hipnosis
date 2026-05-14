@@ -7,7 +7,7 @@ const SITE_URLS = {
   tiktok: 'https://www.tiktok.com'
 };
 
-const DAY_MESSAGES = [
+const DEFAULT_DAY = [
   "Tu yo del pasado te limita para que tu yo del futuro logre sus metas.",
   "Has estado a punto de regalar tu atencion al mejor postor.",
   "Anyadiste esta web para que se bloqueara. Y asi ha sido.",
@@ -16,7 +16,7 @@ const DAY_MESSAGES = [
   "Esta accion iba a hipnotizarte para que vieras anuncios. Curioso."
 ];
 
-const NIGHT_MESSAGES = [
+const DEFAULT_NIGHT = [
   "Hace una gran noche para apagar el ordenador y dormir tranquilamente.",
   "Ya has estado activo todo el dia. Permitete descansar.",
   "Quieres una noche reparadora, pero esta web tenia otros planes.",
@@ -24,7 +24,6 @@ const NIGHT_MESSAGES = [
   "Hace una gran noche para coger un libro antes de dormir."
 ];
 
-// Curva de espera: 10s, 30s, 40s, 60s, 90s, 120s
 const WAIT_CURVE = [10, 30, 40, 60, 90, 120];
 
 function getWaitSeconds(count) {
@@ -36,29 +35,30 @@ function getRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function isNight() {
-  const h = new Date().getHours();
-  return h >= 23 || h < 6;
-}
+// Cargar todo desde storage y luego inicializar
+chrome.storage.local.get([
+  'dayMessages', 'nightMessages', 'userGoals', 'userName', 'accessCount'
+], (stored) => {
+  const dayMsgs = (stored.dayMessages && stored.dayMessages.length) ? stored.dayMessages : DEFAULT_DAY;
+  const nightMsgs = (stored.nightMessages && stored.nightMessages.length) ? stored.nightMessages : DEFAULT_NIGHT;
+  const goals = stored.userGoals || [];
+  const name = stored.userName || '';
+  const accessCount = (stored.accessCount || {})[site] || 0;
 
-chrome.runtime.sendMessage({ type: 'getStatus' }, (status) => {
-  const accessCount = ((status && status.accessCount) || {})[site] || 0;
-  const night = isNight();
-  const msg = night ? getRandom(NIGHT_MESSAGES) : getRandom(DAY_MESSAGES);
-  document.getElementById('mainMessage').textContent = msg;
+  chrome.runtime.sendMessage({ type: 'getStatus' }, (status) => {
+    const night = status ? status.isNight : false;
+    const msg = night ? getRandom(nightMsgs) : getRandom(dayMsgs);
+    document.getElementById('mainMessage').textContent = msg;
 
-  chrome.storage.local.get(['userGoals', 'userName'], (data) => {
-    const goals = data.userGoals || [];
-    const name = data.userName || '';
     if (goals.length > 0) {
       const goalEl = document.getElementById('goalReminder');
       goalEl.textContent = (name ? name + ', recuerda: ' : 'Recuerda: ') + goals[0];
     }
-  });
 
-  document.getElementById('btnWantIt').addEventListener('click', () => {
-    const waitSecs = getWaitSeconds(accessCount);
-    startWait(waitSecs);
+    document.getElementById('btnWantIt').addEventListener('click', () => {
+      const waitSecs = getWaitSeconds(accessCount);
+      startWait(waitSecs);
+    });
   });
 });
 
@@ -86,8 +86,8 @@ function showMinutePicker() {
   document.querySelectorAll('.btn-minutes').forEach(btn => {
     btn.addEventListener('click', () => {
       const minutes = parseInt(btn.dataset.min);
-      chrome.storage.local.get(['accessCount'], (data) => {
-        const count = ((data.accessCount) || {})[site] || 0;
+      chrome.storage.local.get(['accessCount'], (d) => {
+        const count = ((d.accessCount) || {})[site] || 0;
         const finalMinutes = count >= 10 ? Math.min(minutes, 5) : minutes;
         chrome.runtime.sendMessage({ type: 'grantAccess', site, minutes: finalMinutes }, () => {
           window.location.href = SITE_URLS[site];

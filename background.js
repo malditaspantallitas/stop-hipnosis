@@ -3,6 +3,9 @@ const DEFAULT_WINDOWS = [
   { start: '20:00', end: '21:00' }
 ];
 
+// IDs dinamicos para webs personalizadas (empiezan en 100)
+const DYNAMIC_RULE_BASE_ID = 100;
+
 function timeToMinutes(t) {
   const [h, m] = t.split(':').map(Number);
   return h * 60 + m;
@@ -29,24 +32,72 @@ function isNightTime(nightStart) {
   return current >= nightMins || current < 360;
 }
 
+// Construir reglas dinamicas para webs personalizadas
+function buildDynamicRules(customSites) {
+  return customSites.map((domain, i) => ({
+    id: DYNAMIC_RULE_BASE_ID + i,
+    priority: 1,
+    action: {
+      type: 'redirect',
+      redirect: { extensionPath: '/blocked.html?site=custom&domain=' + encodeURIComponent(domain) }
+    },
+    condition: {
+      urlFilter: '||' + domain,
+      resourceTypes: ['main_frame']
+    }
+  }));
+}
+
 async function updateBlockingRules() {
   const data = await chrome.storage.local.get([
     'onboardingDone', 'blockingEnabled', 'tempAccess',
-    'allowedWindows', 'nightStart'
+    'allowedWindows', 'nightStart', 'customSites',
+    'blockYoutube', 'blockInstagram', 'blockTiktok'
   ]);
 
+  // Limpiar siempre las reglas dinamicas anteriores
+  const existingDynamic = await chrome.declarativeNetRequest.getDynamicRules();
+  const idsToRemove = existingDynamic.map(r => r.id);
+
   if (!data.onboardingDone || !data.blockingEnabled) {
+    // Desactivar ruleset estatico y limpiar dinamicas
     try { await chrome.declarativeNetRequest.updateEnabledRulesets({ disableRulesetIds: ['ruleset_1'] }); } catch(e) {}
+    if (idsToRemove.length > 0) {
+      await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: idsToRemove, addRules: [] });
+    }
     return;
   }
 
   const windows = data.allowedWindows || DEFAULT_WINDOWS;
   const allowed = isAllowedTime(windows);
+  const customSites = data.customSites || [];
 
   if (allowed) {
+    // Horario permitido: desbloquear todo
     try { await chrome.declarativeNetRequest.updateEnabledRulesets({ disableRulesetIds: ['ruleset_1'] }); } catch(e) {}
+    if (idsToRemove.length > 0) {
+      await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: idsToRemove, addRules: [] });
+    }
   } else {
-    try { await chrome.declarativeNetRequest.updateEnabledRulesets({ enableRulesetIds: ['ruleset_1'] }); } catch(e) {}
+    // Fuera de horario: activar ruleset estatico + reglas dinamicas
+    // Solo activar los sitios que estan marcados
+    const youtube = data.blockYoutube !== false;
+    const instagram = data.blockInstagram !== false;
+    const tiktok = data.blockTiktok !== false;
+
+    // Ruleset estatico cubre youtube/instagram/tiktok
+    if (youtube || instagram || tiktok) {
+      try { await chrome.declarativeNetRequest.updateEnabledRulesets({ enableRulesetIds: ['ruleset_1'] }); } catch(e) {}
+    } else {
+      try { await chrome.declarativeNetRequest.updateEnabledRulesets({ disableRulesetIds: ['ruleset_1'] }); } catch(e) {}
+    }
+
+    // Reglas dinamicas para webs personalizadas
+    const newRules = buildDynamicRules(customSites);
+    await chrome.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds: idsToRemove,
+      addRules: newRules
+    });
   }
 }
 
@@ -64,7 +115,6 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   }
 });
 
-// Mensajes
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
   if (msg.type === 'grantAccess') {
@@ -76,7 +126,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       tempAccess[site] = expiry;
       accessCount[site] = (accessCount[site] || 0) + 1;
       chrome.storage.local.set({ tempAccess, accessCount }, () => {
-        try { chrome.declarativeNetRequest.updateEnabledRulesets({ disableRulesetIds: ['ruleset_1'] }); } catch(e) {}
+        updateBlockingRules();
         chrome.alarms.create('revokeAccess_' + site, { delayInMinutes: minutes });
         sendResponse({ ok: true });
       });
@@ -100,6 +150,15 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === 'updateRules') {
     updateBlockingRules();
     sendResponse({ ok: true });
+    return true;
+  }
+
+  // Verificar PIN para desactivar
+  if (msg.type === 'verifyPin') {
+    chrome.storage.local.get(['userPin'], (d) => {
+      const correct = d.userPin && d.userPin === msg.pin;
+      sendResponse({ ok: correct });
+    });
     return true;
   }
 });
